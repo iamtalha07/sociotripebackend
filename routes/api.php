@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\AmenityController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -27,3 +29,14 @@ Route::prefix('auth')
             // Route::post('profile-setup', 'profileSetup');
         });
     });
+
+Route::prefix('provider')
+    ->middleware("auth:api")
+    ->group(function () {
+        Route::controller(AuthController::class)->group(function () {
+            Route::post('profile-setup', 'profileSetupProvider');
+        });
+    });
+
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('amenities', [AmenityController::class, 'index']);

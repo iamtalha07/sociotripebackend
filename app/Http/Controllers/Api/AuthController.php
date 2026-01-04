@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserOtp;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
+use App\Models\ProviderDetail;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\LoginRequest;
 use App\Http\Controllers\Controller;
@@ -108,7 +109,7 @@ class AuthController extends Controller
             DB::commit();
             return new BaseResponse(STATUS_CODE_OK, STATUS_CODE_OK, "Successfully verified", $user, $token);
         } else {
-            return new BaseResponse(STATUS_CODE_CREATE, STATUS_CODE_CREATE, "Incorrect code.");
+            return new BaseResponse(STATUS_CODE_BADREQUEST, STATUS_CODE_BADREQUEST, "Incorrect code.");
         }
     }
 
@@ -255,5 +256,40 @@ class AuthController extends Controller
                 }
             }
         }
+    }
+
+    public function profileSetupProvider(Request $request)
+    {
+        DB::beginTransaction();
+
+        $request->validate([
+            'selfie_verification_image' => 'required|image',
+            'id_front_verification_image' => 'required|image',
+            'id_back_verification_image' => 'required|image',
+        ]);
+
+
+        if ($request->file('selfie_verification_image')) {
+            $data['selfie_verification_image'] = uploadImage($request->file('selfie_verification_image'), 'selfie_verification_image', null);
+        }
+
+        if ($request->file('id_front_verification_image')) {
+            $data['id_front_verification_image'] = uploadImage($request->file('id_front_verification_image'), 'id_verification', null);
+        }
+
+        if ($request->file('id_back_verification_image')) {
+            $data['id_back_verification_image'] = uploadImage($request->file('id_back_verification_image'), 'id_verification', null);
+        }
+
+        // Save using relationship (create or update)
+        $providerDetail = $this->currentUser->providerDetail()->updateOrCreate(
+            ['user_id' => $this->currentUser->id],
+            $data
+        );
+
+
+        DB::commit();
+
+        return new BaseResponse(STATUS_CODE_OK, STATUS_CODE_OK, "Profile setup completed.", $providerDetail);
     }
 }

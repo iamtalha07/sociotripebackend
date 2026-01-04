@@ -91,4 +91,9 @@ class User extends Authenticatable
     {
         return $this->first_name . ' ' . $this->last_name;
     }
+
+    public function providerDetail()
+    {
+        return $this->hasOne(ProviderDetail::class);
+    }
 }
