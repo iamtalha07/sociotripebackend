@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AmenityController;
+use App\Http\Controllers\Api\ActivityController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -35,6 +36,10 @@ Route::prefix('provider')
     ->group(function () {
         Route::controller(AuthController::class)->group(function () {
             Route::post('profile-setup', 'profileSetupProvider');
+        });
+
+        Route::controller(ActivityController::class)->group(function () {
+            Route::post('activities', 'store');
         });
     });
 
