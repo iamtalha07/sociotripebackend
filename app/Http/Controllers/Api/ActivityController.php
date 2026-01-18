@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AddActivityRequest;
 use App\Http\Responses\BaseResponse;
 use App\Models\Activity;
 use App\Models\ActivityPricing;
@@ -16,6 +17,14 @@ use Illuminate\Support\Facades\Validator;
 
 class ActivityController extends Controller
 {
+
+    private $currentUser;
+
+    function __construct()
+    {
+        $this->currentUser = auth('api')->user();
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -27,49 +36,20 @@ class ActivityController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(AddActivityRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'booking_type' => 'required|in:direct_booking,on_request',
-            'street_address' => 'required|string',
-            'apartment_floor' => 'nullable|string',
-            'city' => 'required|string',
-            'state' => 'required|string',
-            'postal_code' => 'required|string',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'pricing' => 'required|array|min:1',
-            'pricing.*.category_name' => 'required|string',
-            'pricing.*.age_min' => 'nullable|integer',
-            'pricing.*.age_max' => 'nullable|integer',
-            'pricing.*.price' => 'required|numeric|min:0',
-            'additional_services' => 'nullable|array',
-            'additional_services.*.service_name' => 'required|string',
-            'additional_services.*.price' => 'required|numeric|min:0',
-            'working_hours' => 'required|array|min:1',
-            'working_hours.*.day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'working_hours.*.start_time' => 'required|date_format:H:i',
-            'working_hours.*.end_time' => 'required|date_format:H:i|after:working_hours.*.start_time',
-            'category_ids' => 'required|array|min:1',
-            'category_ids.*' => 'exists:categories,id',
-            'amenity_ids' => 'nullable|array',
-            'amenity_ids.*' => 'exists:amenities,id',
-            'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return new BaseResponse(STATUS_CODE_VALIDATION_ERROR, STATUS_CODE_VALIDATION_ERROR, 'Validation failed', $validator->errors());
-        }
-
         try {
             DB::beginTransaction();
 
+            // Handle cover image uploads
+            if ($request->hasFile('cover_image')) {
+                $coverImage = $request->file('cover_image');
+                $coverImagePath = uploadImage($coverImage, 'activities_cover_image', null);
+            }
+
             // Create activity
             $activity = Activity::create([
-                'user_id' => auth()->id(),
+                'user_id' => $this->currentUser->id,
                 'title' => $request->title,
                 'description' => $request->description,
                 'booking_type' => $request->booking_type,
@@ -80,7 +60,8 @@ class ActivityController extends Controller
                 'postal_code' => $request->postal_code,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'status' => 'draft',
+                'cover_image' => $coverImagePath ?? null,
+                'status' => $request->status,
             ]);
 
             // Create pricing categories
@@ -146,6 +127,12 @@ class ActivityController extends Controller
             DB::rollBack();
             return new BaseResponse(STATUS_CODE_ERROR, STATUS_CODE_ERROR, 'Failed to create activity: ' . $e->getMessage());
         }
+    }
+
+    public function getActivities(Request $request)
+    {
+        $activities = Activity::where('user_id', $this->currentUser->id)->get();
+        return new BaseResponse(STATUS_CODE_OK, STATUS_CODE_OK, 'Activities retrieved successfully', $activities);
     }
 
     /**

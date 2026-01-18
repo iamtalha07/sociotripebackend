@@ -19,6 +19,7 @@ return new class extends Migration
             $table->enum('booking_type', ['direct_booking', 'on_request'])->default('direct_booking');
             $table->string('street_address');
             $table->string('apartment_floor')->nullable();
+            $table->string('cover_image')->nullable();
             $table->string('city');
             $table->string('state');
             $table->string('postal_code');

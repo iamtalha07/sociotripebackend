@@ -23,6 +23,7 @@ class Activity extends Model
         'latitude',
         'longitude',
         'status',
+        'cover_image'
     ];
 
     protected $casts = [

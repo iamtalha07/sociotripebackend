@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\ActivityController;
+use App\Http\Controllers\Api\ContentController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -40,6 +41,13 @@ Route::prefix('provider')
 
         Route::controller(ActivityController::class)->group(function () {
             Route::post('activities', 'store');
+            Route::get('activities/get', 'getActivities');
+        });
+
+        Route::controller(ContentController::class)->group(function () {
+            Route::post('post/add', 'createPost');
+            Route::post('reel/add', 'createReel');
+            Route::get('contents/get', 'getContents');
         });
     });
 
