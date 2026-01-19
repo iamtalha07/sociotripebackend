@@ -22,7 +22,7 @@ class AddCardRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_method_id' => 'required'
+            'payment_method_id' => 'nullable'
         ];
     }
 }

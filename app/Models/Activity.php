@@ -65,4 +65,9 @@ class Activity extends Model
     {
         return $this->hasMany(ActivityImage::class);
     }
+
+    public function boostActivities()
+    {
+        return $this->hasMany(BoostActivity::class);
+    }
 }

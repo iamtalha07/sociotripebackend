@@ -3,10 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CardController;
 use App\Http\Controllers\Api\AmenityController;
-use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\ActivityController;
+use App\Http\Controllers\Api\BoostController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProviderBookingController;
 
 Route::get('/user', function (Request $request) {
@@ -55,7 +57,28 @@ Route::prefix('provider')
             Route::get('bookings', 'getBookings');
             Route::get('bookings/{booking}', 'getBookingDetail');
         });
+
+        Route::controller(BoostController::class)->group(function () {
+            Route::get('actvity-to-boost', 'getActivityToBoost');
+            Route::post('boost/activity', 'boostActivity');
+            Route::get('boost/dashboard', 'boostDashboard');
+            Route::post('boost/activity/end', 'endBoostActivity');
+        });
     });
+
+
+Route::middleware("auth:api")
+    ->group(function () {
+        Route::controller(CardController::class)->group(function () {
+            Route::post('cards/add', 'addCard');
+            Route::get('cards', 'listCard');
+            Route::post('cards/delete', 'deleteCard');
+            Route::post('cards/default', 'markDefaultCard');
+        });
+    });
+
+
 
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('amenities', [AmenityController::class, 'index']);
+Route::get('countries-cities', [AuthController::class, 'getCountriesWithCities']);

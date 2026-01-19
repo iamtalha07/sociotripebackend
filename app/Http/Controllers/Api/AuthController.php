@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Models\Country;
 use App\Models\UserOtp;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
@@ -291,5 +292,34 @@ class AuthController extends Controller
         DB::commit();
 
         return new BaseResponse(STATUS_CODE_OK, STATUS_CODE_OK, "Profile setup completed.", $providerDetail);
+    }
+
+    public function getCountriesWithCities()
+    {
+        $countries = Country::with('cities:id,country_id,name,image')
+            ->select('id', 'name', 'flag_image')
+            ->get();
+
+        $response = $countries->map(function ($country) {
+            return [
+                'id' => $country->id,
+                'name' => $country->name,
+                'flag_image' => $country->flag_image,
+                'cities' => $country->cities->map(function ($city) {
+                    return [
+                        'id' => $city->id,
+                        'name' => $city->name,
+                        'image' => $city->image,
+                    ];
+                })
+            ];
+        });
+
+        return new BaseResponse(
+            STATUS_CODE_OK,
+            STATUS_CODE_OK,
+            'Countries with cities fetched successfully',
+            $response
+        );
     }
 }
