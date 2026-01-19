@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\ProviderBookingController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -48,6 +49,11 @@ Route::prefix('provider')
             Route::post('post/add', 'createPost');
             Route::post('reel/add', 'createReel');
             Route::get('contents/get', 'getContents');
+        });
+
+        Route::controller(ProviderBookingController::class)->group(function () {
+            Route::get('bookings', 'getBookings');
+            Route::get('bookings/{booking}', 'getBookingDetail');
         });
     });
 
